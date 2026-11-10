@@ -55,7 +55,9 @@
     margin:0 -13px;padding:0 13px;overscroll-behavior-x:contain}
   .tl{display:inline-block;min-width:100%}
   .trow{display:flex;align-items:stretch}
-  .tname{position:sticky;left:0;z-index:3;flex:none;width:92px;background:#fff;
+  /* el scroller tiene padding lateral, así que el sticky arranca 13px adentro y
+     deja ver el calendario por detrás: se corre y se compensa con padding */
+  .tname{position:sticky;left:-13px;z-index:3;flex:none;width:105px;padding-left:13px;background:#fff;
     display:flex;align-items:center;font-size:12px;font-weight:600;
     padding-right:7px;border-right:1px solid var(--grid)}
   .tname.hd{font-weight:650;color:var(--ink2)}
@@ -170,7 +172,7 @@
 
   /* narrow phones: let the date fields breathe */
   @media(max-width:520px){
-    .tname{width:74px;font-size:11.5px}
+    .tname{left:-11px;width:85px;padding-left:11px;font-size:11.5px}
     .card{padding:11px;border-radius:12px}
     .scroller{margin:0 -11px;padding:0 11px}
     .stay .g{width:100%}
