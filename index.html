@@ -397,7 +397,9 @@ function busyEditing(){
 function load(first){
   if(!SB) return;
   if(dirty && !first) return;
-  SB.rpc("cal_get",{p_cal:CAL}).then(function(res){
+  var c=CAL;
+  SB.rpc("cal_get",{p_cal:c}).then(function(res){
+    if(c!==CAL) return;   /* cambiaron de calendario mientras viajaba la respuesta */
     if(res.error){ lastErr=res.error.message;
       if(first) fatal("No pude leer el calendario: "+res.error.message);
       else setStatus("Sin conexión con Supabase.","err");
@@ -423,7 +425,9 @@ function save(){
 }
 function doSave(){
   if(!SB){ setStatus("Sin conexión: los cambios no se guardaron.","err"); return; }
-  SB.rpc("cal_put",{p_cal:CAL, p_doc:S, p_version:DOCVER}).then(function(res){
+  var c=CAL;
+  SB.rpc("cal_put",{p_cal:c, p_doc:S, p_version:DOCVER}).then(function(res){
+    if(c!==CAL) return;   /* ídem: la respuesta es de otro calendario */
     if(res.error){ setStatus("No se pudo guardar: "+res.error.message,"err"); return; }
     var out=res.data;
     if(out && out.conflict){
@@ -437,6 +441,17 @@ function doSave(){
     setStatus("Guardado ✓","ok");
   }).catch(function(){ setStatus("No se pudo guardar. Revisá la conexión.","err"); });
 }
+/* Cambiar el hash no recarga la página. Sin esto, la URL muestra un calendario
+   y la página sigue leyendo y ESCRIBIENDO en el anterior. */
+window.addEventListener("hashchange",function(){
+  var h2 = calFromHash() || (CONFIG.cal || null);
+  if(!h2 || h2===CAL) return;
+  if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; if(dirty) doSave(); }
+  CAL=h2; dirty=false; DOCVER=0; LOADED=false;
+  S={cities:[],people:[],base:null,v:1};
+  selPerson=null; selDay=null; expanded={}; didScroll=false;
+  render(); load(true);
+});
 function shareLink(){
   var base=location.origin+location.pathname;
   return (CONFIG.cal && CAL===CONFIG.cal) ? base : base+"#"+CAL;
@@ -656,7 +671,9 @@ function windowsCard(){
       cb.appendChild(r);
     });
     if(g.groups.length>CAP_N){
-      var more=el("button","linkb", open ? "Ver menos" : "Ver los "+(g.groups.length-CAP_N)+" grupos restantes");
+      var rest=g.groups.length-CAP_N;
+      var more=el("button","linkb", open ? "Ver menos"
+        : (rest===1 ? "Ver 1 grupo más" : "Ver los "+rest+" grupos restantes"));
       more.onclick=function(){ expanded[ct.id]=!open; render(); };
       cb.appendChild(more);
     }
