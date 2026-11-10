@@ -75,8 +75,7 @@
   /* 15 ciudades no entran en 15 tonos distinguibles: son 8 tonos validados,
      lisos y rayados. La trama distingue; el código de 3 letras identifica. */
   .stripe{background-image:repeating-linear-gradient(135deg,
-    rgba(255,255,255,.62) 0 2px, rgba(255,255,255,0) 2px 6px)}
-  .sw.stripe{background-size:auto}
+    rgba(255,255,255,.72) 0 2px, rgba(255,255,255,0) 2px 5px)}
   .today{position:absolute;top:0;bottom:0;width:2px;background:var(--c8);z-index:4;pointer-events:none}
 
   /* coincidences */
@@ -225,7 +224,9 @@ function striped(slot){return Number(slot)>8;}
 function cvar(slot){return "var(--c"+hueOf(slot)+")";}
 function inkOn(slot){return TEXT_ON[hueOf(slot)];}
 function paint(node,slot){
-  node.style.background=cvar(slot);
+  /* backgroundColor, no background: el shorthand borra el background-image
+     de .stripe y la trama desaparece */
+  node.style.backgroundColor=cvar(slot);
   if(striped(slot)) node.className+=" stripe";
 }
 function cityById(id){for(var i=0;i<S.cities.length;i++) if(S.cities[i].id===id) return S.cities[i]; return null;}
