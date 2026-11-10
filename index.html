@@ -364,7 +364,8 @@ function boot(){
     return;
   }
   SB = window.supabase.createClient(CONFIG.url, CONFIG.key);
-  CAL = calFromHash();
+  /* la URL pelada abre el calendario del grupo; un hash abre otro distinto */
+  CAL = calFromHash() || (CONFIG.cal || null);
   if(!CAL){ CAL=newCal(); try{ location.replace("#"+CAL); }catch(e){ location.hash=CAL; } }
   load(true);
   /* a handful of people editing now and then — polling beats a realtime socket */
@@ -436,7 +437,10 @@ function doSave(){
     setStatus("Guardado ✓","ok");
   }).catch(function(){ setStatus("No se pudo guardar. Revisá la conexión.","err"); });
 }
-function shareLink(){ return location.origin+location.pathname+"#"+CAL; }
+function shareLink(){
+  var base=location.origin+location.pathname;
+  return (CONFIG.cal && CAL===CONFIG.cal) ? base : base+"#"+CAL;
+}
 
 /* ---------- view state ---------- */
 var view="timeline";
@@ -991,7 +995,7 @@ function editorCard(){
   card.appendChild(imp);
 
   card.appendChild(el("div","step","4 · Compartir"));
-  card.appendChild(el("p","tiny","Cualquiera con este link entra y edita, sin cuenta ni contraseña. Si se lo reenvían a alguien más, esa persona también puede editar."));
+  card.appendChild(el("p","tiny","Cualquiera con este link entra y edita, sin cuenta ni contraseña. No es privado: el link no es una llave."));
   var sr=el("div","row");
   var sb=el("button","b ghost","Copiar link del calendario");
   sb.onclick=function(){

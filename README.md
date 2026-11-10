@@ -39,13 +39,12 @@ En un minuto queda publicado en `https://<usuario>.github.io/<repo>/`.
 
 ### 4. El link
 
-El calendario se abre con su id en el hash:
-
 ```
-https://<usuario>.github.io/<repo>/#db2918a8d4
+https://cecimangisch.github.io/Calendario-OGs/
 ```
 
-Ese es el link que va al grupo. Sin el id, la página crea un calendario vacío nuevo.
+La URL pelada abre el calendario del grupo, porque su id está fijado en `config.js`.
+Si se le agrega otro id al final (`.../#loquesea`), se abre un calendario distinto y vacío.
 
 ## Cómo se guarda
 
@@ -56,8 +55,14 @@ la página avisa y carga la versión de la otra persona. La página además rele
 
 ## Sobre la seguridad
 
-- La publishable key es pública por diseño y está en este repo. Sola no sirve: la tabla
-  está cerrada con RLS y sólo se entra por `cal_get` y `cal_put`, que piden el id
-  del calendario. O sea, hace falta el link.
-- Quien tenga el link puede editar y borrar. Si se filtra, cambiá el id: en Supabase,
-  `update cal_docs set cal = 'otro-id-nuevo' where cal = 'db2918a8d4';` y repartí el link nuevo.
+Esto es un calendario de viajes entre amigas, y está armado como tal: **cualquiera que
+llegue a la página puede ver, editar y borrar.** No hay cuentas ni contraseñas, a propósito.
+
+- La tabla está cerrada con RLS y sólo se entra por `cal_get` y `cal_put`, que piden el
+  id del calendario. Pero el id está en este repo, que es público, así que no es un secreto.
+- La publishable key es pública por diseño y no da acceso por sí sola a nada más: no hay
+  otras tablas, y la Secret key no está acá.
+- Si alguien rompe el calendario, se recupera desde Supabase: la tabla guarda una sola fila
+  por calendario, y Supabase tiene backups diarios.
+- Si alguna vez querés cerrarlo de verdad, el camino es Supabase Auth con magic link y
+  policies por email. Es otro trabajo, no un ajuste.
