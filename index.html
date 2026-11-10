@@ -229,6 +229,27 @@ function paint(node,slot){
   if(striped(slot)) node.className+=" stripe";
 }
 function cityById(id){for(var i=0;i<S.cities.length;i++) if(S.cities[i].id===id) return S.cities[i]; return null;}
+/* Si dos ciudades comparten color (p.ej. se agregaron cuando había menos
+   slots), se le da a las repetidas el primer slot libre. */
+function normalizeSlots(){
+  var seen={}, changed=false, i;
+  S.cities.forEach(function(c){
+    var s=Number(c.slot);
+    if(s===0) return;                       /* el gris es válido y único */
+    if(s>=1 && s<=MAXSLOT && !seen[s]){ seen[s]=1; return; }
+    c.slot=null; changed=true;
+  });
+  if(!changed) return false;
+  var avail=[];
+  for(i=1;i<=MAXSLOT;i++) if(!seen[i]) avail.push(i);
+  S.cities.forEach(function(c){
+    if(c.slot===null){
+      c.slot = avail.length ? avail.shift() : MAXSLOT;
+      seen[c.slot]=1;
+    }
+  });
+  return true;
+}
 function nextSlot(){
   var used={},i;
   for(i=0;i<S.cities.length;i++) used[S.cities[i].slot]=1;
@@ -400,6 +421,7 @@ function applyDoc(row){
   if(!doc.cities) doc.cities=[];
   if(!doc.people) doc.people=[];
   S=doc; DOCVER = row && row.version ? row.version : 0;
+  return normalizeSlots();
 }
 /* Don't yank the page out from under someone who is typing. */
 function busyEditing(){
@@ -423,10 +445,11 @@ function load(first){
     var ver = row && row.version ? row.version : 0;
     if(!first && ver===DOCVER) return;        /* nothing new */
     if(!first && busyEditing()){ return; }    /* pick it up on the next tick */
-    applyDoc(row);
+    var fixed=applyDoc(row);
     LOADED=true;
     render();
     if(!first) setStatus("Actualizado con los cambios de otra persona.","");
+    if(fixed) save();   /* dos ciudades compartían color: queda arreglado para todas */
   }).catch(function(e){
     if(first) fatal("No pude conectar con Supabase. Revisá la URL y la anon key en config.js.");
   });
