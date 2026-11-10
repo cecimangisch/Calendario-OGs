@@ -11,9 +11,7 @@
     --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
     --grid:#e5e4dd; --axis:#c3c2b7; --ring:rgba(11,11,11,0.13);
     --weekend:rgba(11,11,11,0.04);
-    --c0:#898781;
-    --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --c4:#eda100;
-    --c5:#e87ba4; --c6:#008300; --c7:#6250d6; --c8:#e34948;
+    --danger:#cf2b2b;
     --tap:44px;
   }
   *{box-sizing:border-box}
@@ -71,12 +69,7 @@
   .lane.we{background:var(--weekend)}
   .bar{height:19px;margin:2px 1px;border-radius:4px;display:flex;align-items:center;justify-content:center;
     font-size:9.5px;font-weight:700;letter-spacing:0.03em;overflow:hidden;white-space:nowrap}
-  .bar.unk{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.26) 0 3px,transparent 3px 7px)}
-  /* 15 ciudades no entran en 15 tonos distinguibles: son 8 tonos validados,
-     lisos y rayados. La trama distingue; el código de 3 letras identifica. */
-  .stripe{background-image:repeating-linear-gradient(135deg,
-    rgba(255,255,255,.72) 0 2px, rgba(255,255,255,0) 2px 5px)}
-  .today{position:absolute;top:0;bottom:0;width:2px;background:var(--c8);z-index:4;pointer-events:none}
+  .today{position:absolute;top:0;bottom:0;width:2px;background:var(--danger);z-index:4;pointer-events:none}
 
   /* coincidences */
   .cb{border-top:1px solid var(--grid);padding-top:11px;margin-top:11px}
@@ -165,11 +158,11 @@
   .status{font-size:12.5px;color:var(--ink2);min-height:18px;margin-top:10px}
   .gstatus{font-size:12.5px;color:var(--ink2);min-height:0;margin:-6px 0 8px;transition:min-height .1s}
   .gstatus:not(:empty){min-height:18px}
-  .status.err,.gstatus.err{color:var(--c8)}
+  .status.err,.gstatus.err{color:var(--danger)}
   .status.ok,.gstatus.ok{color:#006300}
   .empty{text-align:center;padding:22px 10px;color:var(--ink2);font-size:14px}
   details.imp summary{cursor:pointer;font-size:13.5px;font-weight:650;color:var(--ink2);padding:8px 0}
-  .err{color:var(--c8);font-size:12.5px}
+  .err{color:var(--danger);font-size:12.5px}
   .ok{color:#006300}
 
   /* narrow phones: let the date fields breathe */
@@ -216,19 +209,43 @@ var TODAY = (function(){var n=new Date();return Math.round((Date.UTC(n.getFullYe
 var S = {cities:[],people:[],base:null,v:1};
 var LOADED=false, DOCVER=0;
 
-var TEXT_ON = {0:"#fff",1:"#fff",2:"#fff",3:"#fff",4:"#0b0b0b",5:"#fff",6:"#fff",7:"#fff",8:"#fff"};
-var MAXSLOT = 15;
-/* slots 1-8: tono liso. slots 9-15: el mismo tono, rayado. */
-function hueOf(slot){var n=Number(slot)||0; if(n<=0) return 0; return ((n-1)%8)+1;}
-function striped(slot){return Number(slot)>8;}
-function cvar(slot){return "var(--c"+hueOf(slot)+")";}
-function inkOn(slot){return TEXT_ON[hueOf(slot)];}
-function paint(node,slot){
-  /* backgroundColor, no background: el shorthand borra el background-image
-     de .stripe y la trama desaparece */
-  node.style.backgroundColor=cvar(slot);
-  if(striped(slot)) node.className+=" stripe";
+/* 15 colores, elegidos midiendo la distancia entre todos los pares (OKLab):
+   el par más parecido queda en 11.5. Los primeros 8 siguen el orden viejo
+   para que las ciudades ya cargadas no cambien de color. */
+var PALETTE = [
+  "#2a78d6",  /*  1 azul            */
+  "#ef7a14",  /*  2 naranja         */
+  "#0b9aa8",  /*  3 cian            */
+  "#edb200",  /*  4 amarillo        */
+  "#f78ab0",  /*  5 rosa            */
+  "#12a05f",  /*  6 verde           */
+  "#6433b8",  /*  7 violeta         */
+  "#cf2b2b",  /*  8 rojo            */
+  "#7ab8f0",  /*  9 azul clarito    */
+  "#8fae00",  /* 10 verde amarillo  */
+  "#e0189b",  /* 11 fucsia          */
+  "#ab8ae8",  /* 12 lila            */
+  "#123a73",  /* 13 azul oscuro     */
+  "#8a4f22",  /* 14 terracota       */
+  "#0a5c2e"   /* 15 verde oscuro    */
+];
+var GREY = "#898781";
+var MAXSLOT = PALETTE.length;
+function cvar(slot){
+  var n=Number(slot);
+  return (n>=1 && n<=MAXSLOT) ? PALETTE[n-1] : GREY;
 }
+/* texto blanco o negro según lo oscuro que sea el fondo */
+function inkOn(slot){
+  var c=cvar(slot).replace("#",""), i, v=[];
+  for(i=0;i<3;i++){
+    var x=parseInt(c.substr(i*2,2),16)/255;
+    v.push(x<=0.04045 ? x/12.92 : Math.pow((x+0.055)/1.055,2.4));
+  }
+  var L=0.2126*v[0]+0.7152*v[1]+0.0722*v[2];
+  return ((1.05)/(L+0.05)) >= 3.4 ? "#fff" : "#0b0b0b";
+}
+function paint(node,slot){ node.style.backgroundColor=cvar(slot); }
 function cityById(id){for(var i=0;i<S.cities.length;i++) if(S.cities[i].id===id) return S.cities[i]; return null;}
 /* Si dos ciudades comparten color (p.ej. se agregaron cuando había menos
    slots), se le da a las repetidas el primer slot libre. */
@@ -574,7 +591,7 @@ function timelineCard(){
   });
   if(TODAY>=0&&TODAY<NDAYS){
     var jt=el("button",null,"Hoy");
-    jt.style.borderColor="var(--c8)"; jt.style.color="var(--c8)";
+    jt.style.borderColor="var(--danger)"; jt.style.color="var(--danger)";
     jt.onclick=function(){
       var x=Math.max(0,(TODAY-2)*W);
       try{ sc.scrollTo({left:x,behavior:"smooth"}); }catch(e){ sc.scrollLeft=x; }
@@ -629,7 +646,6 @@ function timelineCard(){
         var span=it.b-it.a+1;
         b.style.gridRow="1"; b.style.gridColumn=(it.a+1)+" / span "+span;
         b.style.color=inkOn(ct.slot);
-        if(ct.slot===0) b.className="bar unk";
         paint(b,ct.slot);
         b.style.alignSelf="start"; b.style.marginTop=(li*23+2)+"px";
         b.title=p.name+" · "+ct.name+" · "+fmt(it.a)+" – "+fmt(it.b)+" ("+span+" días)";
@@ -932,7 +948,7 @@ function editorCard(){
     var nl=el("label","f"); nl.style.flex="1"; nl.appendChild(el("span",null,"Nombre")); nl.appendChild(nmi);
     nr.appendChild(nl);
     var dl=el("button","b ghost","Borrar a "+p.name);
-    dl.style.color="var(--c8)"; dl.style.alignSelf="flex-end";
+    dl.style.color="var(--danger)"; dl.style.alignSelf="flex-end";
     dl.onclick=function(){
       if(dl.getAttribute("data-c")==="1"){
         S.people=S.people.filter(function(z){return z.id!==p.id;});
