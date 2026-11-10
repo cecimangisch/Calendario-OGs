@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>¿Dónde estamos? · Nov 2026 – Feb 2027</title>
+<style>
+  :root{
+    color-scheme: light;
+    --surface:#ffffff; --plane:#ffffff; --card:#ffffff;
+    --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+    --grid:#e5e4dd; --axis:#c3c2b7; --ring:rgba(11,11,11,0.13);
+    --weekend:rgba(11,11,11,0.04);
+    --c0:#898781;
+    --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --c4:#eda100;
+    --c5:#e87ba4; --c6:#008300; --c7:#6250d6; --c8:#e34948;
+    --tap:44px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#fff}
+  body{
+    color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:15px; line-height:1.45;
+    -webkit-text-size-adjust:100%;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:1180px;margin:0 auto;
+    padding:14px 14px calc(72px + env(safe-area-inset-bottom));}
+  h1{font-size:20px;line-height:1.25;margin:0 0 3px;letter-spacing:-0.01em}
+  .sub{color:var(--ink2);font-size:13px;margin:0 0 12px}
+  .card{background:var(--card);border:1px solid var(--ring);border-radius:14px;padding:13px;margin-bottom:12px}
+  .card h2{font-size:12px;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink2);margin:0 0 9px;font-weight:650}
+
+  /* tabs — sticky so switching views never needs a scroll back up */
+  .tabs{position:sticky;top:0;z-index:30;display:flex;gap:3px;background:#fff;
+    border:1px solid var(--ring);border-radius:12px;padding:3px;margin:0 0 12px;
+    box-shadow:0 2px 10px rgba(0,0,0,.05)}
+  .tabs button{flex:1;appearance:none;border:0;background:transparent;color:var(--ink2);font:inherit;
+    font-size:13px;font-weight:600;padding:10px 2px;border-radius:9px;cursor:pointer;white-space:nowrap}
+  .tabs button[aria-selected="true"]{background:var(--ink);color:#fff}
+  @media(max-width:400px){.tabs button{font-size:12px;letter-spacing:-0.02em}}
+
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+  .lg{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink2)}
+  .sw{width:11px;height:11px;border-radius:3px;flex:none;box-shadow:0 0 0 1px var(--ring) inset}
+
+  /* month jump */
+  .jump{display:flex;gap:5px;margin:0 0 10px;flex-wrap:wrap}
+  .jump button{appearance:none;font:inherit;font-size:12.5px;font-weight:650;padding:7px 12px;border-radius:999px;
+    border:1px solid var(--axis);background:#fff;color:var(--ink);cursor:pointer;min-height:36px}
+
+  /* timeline */
+  .scroller{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;
+    margin:0 -13px;padding:0 13px;overscroll-behavior-x:contain}
+  .tl{display:inline-block;min-width:100%}
+  .trow{display:flex;align-items:stretch}
+  .tname{position:sticky;left:0;z-index:3;flex:none;width:92px;background:#fff;
+    display:flex;align-items:center;font-size:12px;font-weight:600;
+    padding-right:7px;border-right:1px solid var(--grid)}
+  .tname.hd{font-weight:650;color:var(--ink2)}
+  .tgrid{display:grid;flex:none}
+  .mcell{font-size:10.5px;font-weight:700;letter-spacing:0.05em;color:var(--ink2);text-transform:uppercase;
+    padding:2px 0 3px;border-left:1px solid var(--grid)}
+  .dcell{font-size:9px;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums;line-height:1.1;padding:1px 0 3px}
+  .dcell.we{background:var(--weekend)}
+  .dcell b{display:block;font-size:10px;font-weight:650;color:var(--ink2)}
+  .lane{position:relative;border-top:1px solid var(--grid)}
+  .lane.we{background:var(--weekend)}
+  .bar{height:19px;margin:2px 1px;border-radius:4px;display:flex;align-items:center;justify-content:center;
+    font-size:9.5px;font-weight:700;letter-spacing:0.03em;overflow:hidden;white-space:nowrap}
+  .bar.unk{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.26) 0 3px,transparent 3px 7px)}
+  .heat{position:relative;height:20px;border-top:1px solid var(--grid)}
+  .hf{position:absolute;inset:1px 1px;border-radius:3px}
+  .hn{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;height:100%;
+    font-size:9.5px;font-weight:700;font-variant-numeric:tabular-nums}
+  .today{position:absolute;top:0;bottom:0;width:2px;background:var(--c8);z-index:4;pointer-events:none}
+
+  /* coincidences */
+  .cb{border-top:1px solid var(--grid);padding-top:11px;margin-top:11px}
+  .cb:first-of-type{border-top:0;padding-top:2px;margin-top:0}
+  .cbh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+  .cbh .mx{font-size:12.5px;color:var(--ink2)}
+  .win{display:flex;gap:10px;padding:5px 0;align-items:flex-start}
+  .win .wn{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;min-width:24px;text-align:right;line-height:1.2}
+  .win .wb{flex:1;min-width:0}
+  .win .wr{font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums}
+  .win .wq{color:var(--muted);font-weight:600}
+  .win .wh{font-size:12.5px;color:var(--ink2);margin-top:2px;line-height:1.35}
+  .linkb{appearance:none;border:0;background:transparent;font:inherit;font-size:12.5px;font-weight:650;
+    color:var(--ink2);cursor:pointer;padding:8px 0 2px;text-decoration:underline;text-underline-offset:3px}
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;
+    padding:3px 8px;border-radius:999px;color:#fff;letter-spacing:.02em}
+
+  /* months */
+  .months{display:grid;gap:14px;grid-template-columns:1fr}
+  @media(min-width:760px){.months{grid-template-columns:repeat(2,1fr)}}
+  @media(min-width:1180px){.months{grid-template-columns:repeat(4,1fr)}}
+  .mh{font-size:14px;font-weight:650;margin:0 0 7px}
+  .mg{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+  .wd{font-size:10px;color:var(--muted);text-align:center;font-weight:650;padding-bottom:2px}
+  .day{border:1px solid var(--grid);border-radius:8px;min-height:58px;padding:3px;background:#fff;
+    display:flex;flex-direction:column;gap:2px;cursor:pointer;text-align:left;font:inherit;
+    -webkit-tap-highlight-color:transparent}
+  .day.pad{border:0;background:transparent;cursor:default;min-height:0}
+  .day.we{background:var(--weekend)}
+  .day.sel{outline:2px solid var(--ink);outline-offset:1px}
+  .dn{font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums;font-weight:650}
+  .chip{display:flex;align-items:center;gap:3px;font-size:9.5px;font-weight:700;border-radius:4px;padding:2px 3px;color:#fff;
+    white-space:nowrap;overflow:hidden}
+
+  /* day detail */
+  .det{position:sticky;bottom:calc(8px + env(safe-area-inset-bottom));z-index:20;background:#fff;
+    border:1px solid var(--ring);border-radius:14px;padding:12px 14px;
+    box-shadow:0 -6px 24px rgba(0,0,0,.13);margin-top:12px}
+  .det h3{margin:0 0 8px;font-size:15px;padding-right:28px}
+  .det ul{margin:0;padding:0;list-style:none}
+  .det li{display:flex;gap:8px;padding:4px 0;font-size:13.5px;align-items:baseline;flex-wrap:wrap}
+  .det .cl{font-weight:650;min-width:92px;display:inline-flex;align-items:center;gap:6px}
+  .x{appearance:none;border:0;background:transparent;color:var(--ink2);font:inherit;font-size:20px;cursor:pointer;
+    position:absolute;top:4px;right:6px;line-height:1;width:var(--tap);height:var(--tap)}
+
+  /* data view */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--grid)}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink2);font-weight:650}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+  .drow{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--grid);font-size:13.5px}
+  .drow .dp{font-weight:650;min-width:62px}
+  .drow .dd{flex:1;min-width:0;color:var(--ink2);font-variant-numeric:tabular-nums}
+  .drow .dq{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12.5px}
+
+  /* editor */
+  .ed{display:grid;gap:9px}
+  .row{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+  label.f{display:grid;gap:3px;font-size:11px;color:var(--ink2);font-weight:650}
+  input,select,textarea,button.b{font:inherit;font-size:16px;color:var(--ink);background:#fff;
+    border:1px solid var(--axis);border-radius:10px;padding:10px 11px;min-height:var(--tap)}
+  textarea{width:100%;min-height:104px;resize:vertical;font-size:16px;line-height:1.5}
+  button.b{cursor:pointer;font-weight:650;background:var(--ink);color:#fff;border-color:var(--ink);font-size:14.5px}
+  button.b.ghost{background:#fff;color:var(--ink);border-color:var(--axis);font-weight:600}
+  button.b:disabled{opacity:.45;cursor:default}
+  .tiny{font-size:12.5px;color:var(--ink2)}
+  .stays{display:grid;gap:6px;margin-top:4px}
+  .stay{display:flex;gap:8px;align-items:center;font-size:13px;padding:7px 8px;
+    border:1px solid var(--grid);border-radius:10px;flex-wrap:wrap}
+  .stay .g{flex:1;min-width:0}
+  .del{appearance:none;border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:17px;
+    line-height:1;width:36px;height:36px;flex:none;border-radius:8px}
+  .step{font-size:11.5px;font-weight:700;letter-spacing:.04em;color:var(--ink2);margin:18px 0 8px;text-transform:uppercase}
+  .step:first-of-type{margin-top:6px}
+  .picker{display:flex;flex-wrap:wrap;gap:6px}
+  .chipb{appearance:none;font:inherit;font-size:14px;font-weight:600;padding:10px 15px;border-radius:999px;
+    border:1px solid var(--axis);background:#fff;color:var(--ink);cursor:pointer;min-height:var(--tap);
+    -webkit-tap-highlight-color:transparent}
+  .chipb.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .ctag{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:6px 10px;
+    border:1px solid var(--grid);border-radius:999px}
+  .basetag{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink2);
+    background:var(--grid);padding:1px 5px;border-radius:4px}
+  .status{font-size:12.5px;color:var(--ink2);min-height:18px;margin-top:10px}
+  .gstatus{font-size:12.5px;color:var(--ink2);min-height:0;margin:-6px 0 8px;transition:min-height .1s}
+  .gstatus:not(:empty){min-height:18px}
+  .status.err,.gstatus.err{color:var(--c8)}
+  .status.ok,.gstatus.ok{color:#006300}
+  .empty{text-align:center;padding:22px 10px;color:var(--ink2);font-size:14px}
+  details.imp summary{cursor:pointer;font-size:13.5px;font-weight:650;color:var(--ink2);padding:8px 0}
+  .err{color:var(--c8);font-size:12.5px}
+  .ok{color:#006300}
+
+  /* narrow phones: let the date fields breathe */
+  @media(max-width:520px){
+    .tname{width:74px;font-size:11.5px}
+    .card{padding:11px;border-radius:12px}
+    .scroller{margin:0 -11px;padding:0 11px}
+    .stay .g{width:100%}
+    .stay .g select,.stay .g input{flex:1;min-width:120px}
+    label.f{flex:1;min-width:132px}
+    label.f select,label.f input{width:100%}
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <h1>¿Dónde estamos?</h1>
+  <p class="sub" id="sub">Noviembre 2026 – Febrero 2027 · el color es la ciudad</p>
+  <div id="app"></div>
+</div>
+
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- dates ---------- */
+var DAY = 86400000;
+function u(s){var p=String(s).split("-");return Date.UTC(+p[0],+p[1]-1,+p[2]);}
+var START = u("2026-11-01"), NDAYS = 120;
+function at(i){return new Date(START+i*DAY);}
+function iso(d){return d.toISOString().slice(0,10);}
+function ix(s){var v=Math.round((u(s)-START)/DAY);return v;}
+var WD = ["D","L","M","X","J","V","S"];
+var MN = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+var MS = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+function fmt(i){var d=at(i);return d.getUTCDate()+" "+MS[d.getUTCMonth()];}
+function isWe(i){var w=at(i).getUTCDay();return w===0||w===6;}
+var TODAY = (function(){var n=new Date();return Math.round((Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())-START)/DAY);})();
+
+/* ---------- state ---------- */
+var S = {cities:[],people:[],base:null,v:1};
+var LOADED=false, DOCVER=0;
+
+var TEXT_ON = {0:"#fff",1:"#fff",2:"#fff",3:"#fff",4:"#0b0b0b",5:"#fff",6:"#fff",7:"#fff",8:"#fff"};
+function cvar(slot){return "var(--c"+slot+")";}
+function cityById(id){for(var i=0;i<S.cities.length;i++) if(S.cities[i].id===id) return S.cities[i]; return null;}
+function nextSlot(){
+  var used={},i;
+  for(i=0;i<S.cities.length;i++) used[S.cities[i].slot]=1;
+  for(i=1;i<=8;i++) if(!used[i]) return i;
+  return ((S.cities.length)%8)+1;
+}
+function uid(p){return p+Math.random().toString(36).slice(2,8);}
+function slugCode(name){
+  var base=name.trim().replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]/g,"");
+  var parts=base.split(/\s+/).filter(Boolean);
+  var c = parts.length>1 ? (parts[0][0]+parts[1][0]+(parts[1][1]||"")) : base.slice(0,3);
+  c=c.toUpperCase();
+  var taken={},i;
+  for(i=0;i<S.cities.length;i++) taken[S.cities[i].code]=1;
+  var out=c,n=2; while(taken[out]){out=c.slice(0,2)+n;n++;}
+  return out;
+}
+
+/* ---------- derived ---------- */
+var D = {};
+function compute(){
+  var byDay = [], i, j, k;
+  for(i=0;i<NDAYS;i++){ byDay.push({}); }
+  for(i=0;i<S.people.length;i++){
+    var p=S.people[i], st=p.stays||[];
+    for(j=0;j<st.length;j++){
+      var a=ix(st[j].from), b=ix(st[j].to);
+      if(isNaN(a)||isNaN(b)) continue;
+      if(b<a){var t=a;a=b;b=t;}
+      a=Math.max(0,a); b=Math.min(NDAYS-1,b);
+      for(k=a;k<=b;k++){
+        var m=byDay[k]; if(!m[st[j].city]) m[st[j].city]=[];
+        if(m[st[j].city].indexOf(p.id)<0) m[st[j].city].push(p.id);
+      }
+    }
+  }
+  var max=0;
+  for(i=0;i<NDAYS;i++) for(var c in byDay[i]) if(byDay[i][c].length>max) max=byDay[i][c].length;
+  D.byDay=byDay; D.max=max;
+  D.lanes={};
+  for(i=0;i<S.people.length;i++) D.lanes[S.people[i].id]=packLanes(S.people[i].stays||[]);
+}
+function packLanes(stays){
+  var items=[],i;
+  for(i=0;i<stays.length;i++){
+    var a=ix(stays[i].from), b=ix(stays[i].to);
+    if(isNaN(a)||isNaN(b)) continue;
+    if(b<a){var t=a;a=b;b=t;}
+    if(b<0||a>NDAYS-1) continue;
+    items.push({a:Math.max(0,a),b:Math.min(NDAYS-1,b),city:stays[i].city});
+  }
+  items.sort(function(x,y){return x.a-y.a;});
+  var lanes=[];
+  for(i=0;i<items.length;i++){
+    var placed=false;
+    for(var L=0;L<lanes.length;L++){
+      var last=lanes[L][lanes[L].length-1];
+      if(items[i].a>last.b){lanes[L].push(items[i]);placed=true;break;}
+    }
+    if(!placed) lanes.push([items[i]]);
+  }
+  return lanes;
+}
+function cityCount(ci,day){var a=D.byDay[day][ci];return a?a.length:0;}
+
+/* Split a city's timeline into stretches where the exact set of people is the
+   same, then group the stretches that share a set. Each group is one real
+   cohort, so the headcount and the names always agree. */
+function cohorts(fromToday){
+  var lo = fromToday ? Math.max(0,Math.min(TODAY,NDAYS-1)) : 0;
+  var res=[];
+  S.cities.forEach(function(ct){
+    var segs=[], curKey=null, curStart=-1, i;
+    for(i=lo;i<=NDAYS;i++){
+      var ids = i<NDAYS ? (D.byDay[i][ct.id]||[]).slice().sort() : [];
+      var key = ids.length>=2 ? ids.join(",") : null;
+      if(key!==curKey){
+        if(curKey!==null) segs.push({key:curKey,a:curStart,b:i-1});
+        curKey=key; curStart=i;
+      }
+    }
+    if(!segs.length) return;
+    var groups={};
+    segs.forEach(function(s){
+      if(!groups[s.key]) groups[s.key]={ids:s.key.split(","),runs:[],days:0};
+      groups[s.key].runs.push({a:s.a,b:s.b});
+      groups[s.key].days += s.b-s.a+1;
+    });
+    var list=[],k;
+    for(k in groups) list.push(groups[k]);
+    list.sort(function(x,y){
+      return y.ids.length-x.ids.length || y.days-x.days || x.runs[0].a-y.runs[0].a;
+    });
+    var maxK=0;
+    list.forEach(function(g){ if(g.ids.length>maxK) maxK=g.ids.length; });
+    res.push({city:ct,maxK:maxK,groups:list});
+  });
+  res.sort(function(a,b){return b.maxK-a.maxK;});
+  return res;
+}
+function fmtRange(a,b){
+  var da=at(a),db=at(b);
+  if(a===b) return fmt(a);
+  if(da.getUTCMonth()===db.getUTCMonth()) return da.getUTCDate()+"–"+db.getUTCDate()+" "+MS[db.getUTCMonth()];
+  return fmt(a)+"–"+fmt(b);
+}
+function pname(id){for(var i=0;i<S.people.length;i++) if(S.people[i].id===id) return S.people[i].name; return "?";}
+function nameList(ids){
+  var n=ids.map(pname).sort(function(a,b){return a.localeCompare(b,"es");});
+  if(n.length<=1) return n.join("");
+  return n.slice(0,-1).join(", ")+" y "+n[n.length-1];
+}
+
+/* ---------- Supabase ---------- */
+/* The whole calendar is one jsonb document per `cal` id, guarded by a version
+   number: a save only lands if nobody else saved since we last read. Reads and
+   writes go through two SQL functions, so the anon key alone is not enough —
+   you also need the calendar id that lives in the page's URL. */
+var SB=null, CAL=null, saveTimer=null, dirty=false, pollTimer=null, lastErr=null;
+
+function setStatus(msg,cls){
+  var e=document.getElementById("status");
+  if(e){e.textContent=msg||""; e.className="status "+(cls||"");}
+  var g=document.getElementById("gstatus");
+  if(g){g.textContent=msg||""; g.className="gstatus "+(cls||"");}
+}
+function calFromHash(){
+  var h=(location.hash||"").replace(/^#/,"").trim();
+  return /^[a-z0-9]{6,40}$/i.test(h) ? h : null;
+}
+function newCal(){
+  var s="",c="abcdefghijklmnopqrstuvwxyz0123456789";
+  for(var i=0;i<10;i++) s+=c.charAt(Math.floor(Math.random()*c.length));
+  return s;
+}
+function configured(){
+  return typeof CONFIG!=="undefined" && CONFIG && CONFIG.url && CONFIG.key
+    && CONFIG.url.indexOf("TU-PROYECTO")<0;
+}
+function boot(){
+  if(!configured()){
+    fatal("Falta configurar Supabase. Abrí config.js y poné la URL y la anon key de tu proyecto.");
+    return;
+  }
+  if(!window.supabase || !window.supabase.createClient){
+    fatal("No se pudo cargar la librería de Supabase. Revisá la conexión y recargá.");
+    return;
+  }
+  SB = window.supabase.createClient(CONFIG.url, CONFIG.key);
+  CAL = calFromHash();
+  if(!CAL){ CAL=newCal(); try{ location.replace("#"+CAL); }catch(e){ location.hash=CAL; } }
+  load(true);
+  /* a handful of people editing now and then — polling beats a realtime socket */
+  pollTimer=setInterval(function(){ if(!document.hidden) load(false); }, 8000);
+  window.addEventListener("focus",function(){ load(false); });
+}
+function fatal(msg){
+  var app=document.getElementById("app");
+  if(!app) return;
+  app.textContent="";
+  var c=document.createElement("div"); c.className="card";
+  var d=document.createElement("div"); d.className="empty"; d.textContent=msg;
+  c.appendChild(d); app.appendChild(c);
+}
+function applyDoc(row){
+  var doc = row && row.doc ? row.doc : null;
+  if(!doc){ doc={cities:[],people:[],base:null,v:1}; }
+  if(!doc.cities) doc.cities=[];
+  if(!doc.people) doc.people=[];
+  S=doc; DOCVER = row && row.version ? row.version : 0;
+}
+/* Don't yank the page out from under someone who is typing. */
+function busyEditing(){
+  var a=document.activeElement;
+  if(!a) return false;
+  var t=(a.tagName||"").toLowerCase();
+  return t==="input"||t==="select"||t==="textarea";
+}
+function load(first){
+  if(!SB) return;
+  if(dirty && !first) return;
+  SB.rpc("cal_get",{p_cal:CAL}).then(function(res){
+    if(res.error){ lastErr=res.error.message;
+      if(first) fatal("No pude leer el calendario: "+res.error.message);
+      else setStatus("Sin conexión con Supabase.","err");
+      return; }
+    lastErr=null;
+    var row=res.data;
+    var ver = row && row.version ? row.version : 0;
+    if(!first && ver===DOCVER) return;        /* nothing new */
+    if(!first && busyEditing()){ return; }    /* pick it up on the next tick */
+    applyDoc(row);
+    LOADED=true;
+    render();
+    if(!first) setStatus("Actualizado con los cambios de otra persona.","");
+  }).catch(function(e){
+    if(first) fatal("No pude conectar con Supabase. Revisá la URL y la anon key en config.js.");
+  });
+}
+function save(){
+  dirty=true;
+  setStatus("Guardando…","");
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer=setTimeout(doSave,900);
+}
+function doSave(){
+  if(!SB){ setStatus("Sin conexión: los cambios no se guardaron.","err"); return; }
+  SB.rpc("cal_put",{p_cal:CAL, p_doc:S, p_version:DOCVER}).then(function(res){
+    if(res.error){ setStatus("No se pudo guardar: "+res.error.message,"err"); return; }
+    var out=res.data;
+    if(out && out.conflict){
+      /* somebody saved between our read and our write — theirs wins, show it */
+      applyDoc(out.current); dirty=false; render();
+      setStatus("Otra persona guardó al mismo tiempo. Se cargó su versión; revisá tu cambio.","err");
+      return;
+    }
+    DOCVER = out && out.version ? out.version : DOCVER+1;
+    dirty=false;
+    setStatus("Guardado ✓","ok");
+  }).catch(function(){ setStatus("No se pudo guardar. Revisá la conexión.","err"); });
+}
+function shareLink(){ return location.origin+location.pathname+"#"+CAL; }
+
+/* ---------- view state ---------- */
+var view="timeline";
+var selDay=null, fromToday=false, selPerson=null, expanded={};
+
+/* ---------- helpers ---------- */
+function el(t,cls,txt){var e=document.createElement(t); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e;}
+function colW(){var w=window.innerWidth; return w<400?15:w<620?18:w<900?22:26;}
+var didScroll=false;
+
+/* ---------- render ---------- */
+function render(){
+  compute();
+  var app=document.getElementById("app");
+  app.textContent="";
+  if(!LOADED){
+    var ld=el("div","card"); ld.appendChild(el("div","empty","Cargando el calendario…"));
+    app.appendChild(ld); return;
+  }
+
+  var tabs=el("div","tabs");
+  [["timeline","Calendario"],["meses","Meses"],["tabla","Datos"],["editar","Editar"]].forEach(function(t){
+    var b=el("button",null,t[1]);
+    b.setAttribute("aria-selected", view===t[0]?"true":"false");
+    b.onclick=function(){view=t[0]; render();};
+    tabs.appendChild(b);
+  });
+  app.appendChild(tabs);
+  var gs=el("div","gstatus"); gs.id="gstatus"; app.appendChild(gs);
+
+  if(view==="editar"){
+    app.appendChild(editorCard());
+    return;
+  }
+  if(S.people.length===0){
+    var e0=el("div","card");
+    e0.appendChild(el("div","empty","Todavía no hay nadie cargado. Andá a «Editar» y agregá a cada una con sus tramos — o pegá la lista de golpe."));
+    app.appendChild(e0);
+    return;
+  }
+  app.appendChild(legendCard());
+  if(view==="timeline"){ app.appendChild(timelineCard()); app.appendChild(windowsCard()); }
+  else if(view==="meses"){ app.appendChild(monthsCard()); if(selDay!==null) app.appendChild(detailCard()); }
+  else { app.appendChild(tableCard()); }
+}
+
+function legendCard(){
+  var c=el("div","card");
+  var lg=el("div","legend");
+  S.cities.forEach(function(ct){
+    var s=el("span","lg");
+    var sw=el("span","sw"); sw.style.background=cvar(ct.slot); s.appendChild(sw);
+    s.appendChild(el("span",null,ct.name+" ("+ct.code+")"));
+    lg.appendChild(s);
+  });
+  c.appendChild(lg);
+  return c;
+}
+
+function timelineCard(){
+  var card=el("div","card");
+  card.appendChild(el("h2",null,"Quién está dónde"));
+  var sc=el("div","scroller");
+  var tl=el("div","tl");
+  var W=colW(), i;
+
+  var runs=[],cur=null;
+  for(i=0;i<NDAYS;i++){ var m=at(i).getUTCMonth(); if(!cur||cur.m!==m){cur={m:m,a:i,b:i};runs.push(cur);} else cur.b=i; }
+
+  /* month jump — a 120-day strip is a lot of swiping on a phone */
+  var jump=el("div","jump");
+  runs.forEach(function(r){
+    var jb=el("button",null,MN[r.m][0].toUpperCase()+MN[r.m].slice(1,3));
+    jb.onclick=function(){
+      try{ sc.scrollTo({left:r.a*W,behavior:"smooth"}); }catch(e){ sc.scrollLeft=r.a*W; }
+    };
+    jump.appendChild(jb);
+  });
+  if(TODAY>=0&&TODAY<NDAYS){
+    var jt=el("button",null,"Hoy");
+    jt.style.borderColor="var(--c8)"; jt.style.color="var(--c8)";
+    jt.onclick=function(){
+      var x=Math.max(0,(TODAY-2)*W);
+      try{ sc.scrollTo({left:x,behavior:"smooth"}); }catch(e){ sc.scrollLeft=x; }
+    };
+    jump.appendChild(jt);
+  }
+  card.appendChild(jump);
+
+  /* months header */
+  var r0=el("div","trow");
+  var n0=el("div","tname hd"); r0.appendChild(n0);
+  var g0=el("div","tgrid"); g0.style.gridTemplateColumns="repeat("+NDAYS+","+W+"px)";
+  runs.forEach(function(r){
+    var c=el("div","mcell",MN[r.m]+" "+at(r.a).getUTCFullYear());
+    c.style.gridColumn=(r.a+1)+" / span "+(r.b-r.a+1);
+    c.style.paddingLeft="4px";
+    g0.appendChild(c);
+  });
+  r0.appendChild(g0); tl.appendChild(r0);
+
+  /* day numbers */
+  var r1=el("div","trow");
+  var n1=el("div","tname hd"); r1.appendChild(n1);
+  var g1=el("div","tgrid"); g1.style.gridTemplateColumns="repeat("+NDAYS+","+W+"px)";
+  for(i=0;i<NDAYS;i++){
+    var d=at(i);
+    var c=el("div","dcell"+(isWe(i)?" we":""));
+    c.appendChild(el("span",null,WD[d.getUTCDay()]));
+    c.appendChild(el("b",null,String(d.getUTCDate())));
+    g1.appendChild(c);
+  }
+  r1.appendChild(g1); tl.appendChild(r1);
+
+  /* people rows */
+  var people=S.people.slice().sort(function(a,b){return a.name.localeCompare(b.name,"es");});
+  people.forEach(function(p){
+    var lanes=D.lanes[p.id]||[];
+    var h=Math.max(1,lanes.length)*23;
+    var row=el("div","trow");
+    var nm=el("div","tname",p.name); nm.style.height=h+"px"; row.appendChild(nm);
+    var g=el("div","tgrid"); g.style.gridTemplateColumns="repeat("+NDAYS+","+W+"px)";
+    g.style.position="relative";
+    for(i=0;i<NDAYS;i++){
+      var bg=el("div","lane"+(isWe(i)?" we":""));
+      bg.style.gridRow="1"; bg.style.gridColumn=(i+1); bg.style.height=h+"px";
+      g.appendChild(bg);
+    }
+    lanes.forEach(function(lane,li){
+      lane.forEach(function(it){
+        var ct=cityById(it.city); if(!ct) return;
+        var b=el("div","bar");
+        var span=it.b-it.a+1;
+        b.style.gridRow="1"; b.style.gridColumn=(it.a+1)+" / span "+span;
+        b.style.background=cvar(ct.slot); b.style.color=TEXT_ON[ct.slot];
+        if(ct.slot===0) b.className="bar unk";
+        b.style.alignSelf="start"; b.style.marginTop=(li*23+2)+"px";
+        b.title=p.name+" · "+ct.name+" · "+fmt(it.a)+" – "+fmt(it.b)+" ("+span+" días)";
+        if(span*W>=38) b.textContent = span*W>=80 ? ct.name.toUpperCase() : ct.code;
+        g.appendChild(b);
+      });
+    });
+    if(TODAY>=0&&TODAY<NDAYS){var t=el("div","today");t.style.left=(TODAY*W)+"px";g.appendChild(t);}
+    row.appendChild(g); tl.appendChild(row);
+  });
+
+  /* heat rows per city */
+  var sep=el("div","trow"); sep.style.height="9px"; tl.appendChild(sep);
+  S.cities.forEach(function(ct){
+    var row=el("div","trow");
+    var nm=el("div","tname hd",ct.code); nm.style.height="21px"; nm.title="Personas en "+ct.name+" cada día";
+    row.appendChild(nm);
+    var g=el("div","tgrid"); g.style.gridTemplateColumns="repeat("+NDAYS+","+W+"px)";
+    for(i=0;i<NDAYS;i++){
+      var n=cityCount(ct.id,i);
+      var cell=el("div","heat"+(isWe(i)?" we":""));
+      cell.style.gridColumn=(i+1);
+      if(n>0){
+        var f=el("div","hf"); f.style.background=cvar(ct.slot);
+        f.style.opacity=String(0.22+0.78*(D.max?n/D.max:1));
+        cell.appendChild(f);
+        var s=el("div","hn",String(n)); s.style.color = n/ (D.max||1) > 0.55 ? TEXT_ON[ct.slot] : "var(--ink)";
+        if(W>=22) cell.appendChild(s);
+        cell.title=ct.name+" · "+fmt(i)+" · "+n+(n===1?" persona":" personas");
+      }
+      g.appendChild(cell);
+    }
+    row.appendChild(g); tl.appendChild(row);
+  });
+
+  sc.appendChild(tl); card.appendChild(sc);
+  card.appendChild(el("p","tiny","Deslizá para ver los cuatro meses. Las filas de abajo cuentan cuántas están en cada ciudad ese día."));
+  if(!didScroll && TODAY>0 && TODAY<NDAYS){
+    setTimeout(function(){
+      try{ sc.scrollLeft=Math.max(0,(TODAY-2)*W); didScroll=true; }catch(e){}
+    },0);
+  }
+  return card;
+}
+
+function windowsCard(){
+  var card=el("div","card");
+  var head=el("div","row"); head.style.justifyContent="space-between";
+  head.appendChild(el("h2",null,"Cuándo coinciden"));
+  var tg=el("button","b ghost",fromToday?"Todo el período":"Solo desde hoy");
+  tg.style.fontSize="12.5px"; tg.style.padding="5px 9px";
+  tg.onclick=function(){fromToday=!fromToday;render();};
+  head.appendChild(tg);
+  card.appendChild(head);
+
+  var L=cohorts(fromToday);
+  if(L.length===0){ card.appendChild(el("div","empty","No hay días en que coincidan dos o más en la misma ciudad.")); return card; }
+  var CAP_N=6;
+  L.forEach(function(g){
+    var ct=g.city;
+    var cb=el("div","cb");
+    var hd=el("div","cbh");
+    var pl=el("span","pill",ct.name); pl.style.background=cvar(ct.slot); pl.style.color=TEXT_ON[ct.slot];
+    hd.appendChild(pl);
+    hd.appendChild(el("span","mx","hasta "+g.maxK+" juntas"));
+    cb.appendChild(hd);
+    var open = expanded[ct.id]===true;
+    var shown = open ? g.groups : g.groups.slice(0,CAP_N);
+    shown.forEach(function(gr){
+      var r=el("div","win");
+      var n=el("div","wn",String(gr.ids.length)); n.style.color=cvar(ct.slot); r.appendChild(n);
+      var b=el("div","wb");
+      var wr=el("div","wr", gr.runs.map(function(x){return fmtRange(x.a,x.b);}).join(" · "));
+      wr.appendChild(el("span","wq"," ("+gr.days+(gr.days===1?" día)":" días)")));
+      b.appendChild(wr);
+      b.appendChild(el("div","wh", nameList(gr.ids)));
+      r.appendChild(b);
+      cb.appendChild(r);
+    });
+    if(g.groups.length>CAP_N){
+      var more=el("button","linkb", open ? "Ver menos" : "Ver los "+(g.groups.length-CAP_N)+" grupos restantes");
+      more.onclick=function(){ expanded[ct.id]=!open; render(); };
+      cb.appendChild(more);
+    }
+    card.appendChild(cb);
+  });
+  var cp=el("button","b ghost","Copiar resumen para el grupo");
+  cp.style.marginTop="12px";
+  cp.onclick=function(){
+    var lines=["¿Dónde estamos? "+(fromToday?"(desde hoy)":"(nov–feb)")];
+    L.forEach(function(g){
+      lines.push("");
+      lines.push(g.city.name+" — hasta "+g.maxK+" juntas");
+      g.groups.forEach(function(gr){
+        lines.push("  "+gr.ids.length+" · "+gr.runs.map(function(x){return fmtRange(x.a,x.b);}).join(" · ")
+          +" ("+gr.days+" días)");
+        lines.push("     "+nameList(gr.ids));
+      });
+    });
+    var txt=lines.join("\n");
+    try{ navigator.clipboard.writeText(txt).then(function(){cp.textContent="Copiado ✓";setTimeout(function(){cp.textContent="Copiar resumen para el grupo";},1800);})
+      .catch(function(){cp.textContent="No se pudo copiar";}); }
+    catch(e){ cp.textContent="No se pudo copiar"; }
+  };
+  card.appendChild(cp);
+  return card;
+}
+
+function monthsCard(){
+  var card=el("div","card");
+  card.appendChild(el("h2",null,"Mes a mes"));
+  var box=el("div","months");
+  var runs=[],cur=null,i;
+  for(i=0;i<NDAYS;i++){ var m=at(i).getUTCMonth(); if(!cur||cur.m!==m){cur={m:m,a:i,b:i};runs.push(cur);} else cur.b=i; }
+  runs.forEach(function(r){
+    var mb=el("div");
+    mb.appendChild(el("div","mh",MN[r.m][0].toUpperCase()+MN[r.m].slice(1)+" "+at(r.a).getUTCFullYear()));
+    var g=el("div","mg");
+    ["L","M","X","J","V","S","D"].forEach(function(w){ g.appendChild(el("div","wd",w)); });
+    var lead=(at(r.a).getUTCDay()+6)%7, z;
+    for(z=0;z<lead;z++) g.appendChild(el("div","day pad"));
+    for(i=r.a;i<=r.b;i++){
+      g.appendChild(dayCell(i));
+    }
+    mb.appendChild(g);
+    box.appendChild(mb);
+  });
+  card.appendChild(box);
+  card.appendChild(el("p","tiny","Tocá un día para ver quién está en cada ciudad."));
+  return card;
+}
+function dayCell(i){
+  var b=el("button","day"+(isWe(i)?" we":"")+(selDay===i?" sel":""));
+  b.appendChild(el("div","dn",String(at(i).getUTCDate())));
+  var list=[],c;
+  for(c=0;c<S.cities.length;c++){
+    var n=cityCount(S.cities[c].id,i);
+    if(n>0) list.push({ct:S.cities[c],n:n});
+  }
+  list.sort(function(x,y){return y.n-x.n;});
+  list.slice(0,3).forEach(function(o){
+    var ch=el("div","chip",o.ct.code+" "+o.n);
+    ch.style.background=cvar(o.ct.slot); ch.style.color=TEXT_ON[o.ct.slot];
+    b.appendChild(ch);
+  });
+  if(list.length>3) b.appendChild(el("div","dn","+"+(list.length-3)));
+  b.onclick=function(){ selDay = (selDay===i?null:i); render(); };
+  return b;
+}
+
+function detailCard(){
+  var c=el("div","det"); c.style.position="relative";
+  var d=at(selDay);
+  c.appendChild(el("h3",null, d.getUTCDate()+" de "+MN[d.getUTCMonth()]+" "+d.getUTCFullYear()));
+  var x=el("button","x","×"); x.setAttribute("aria-label","Cerrar");
+  x.onclick=function(){selDay=null;render();}; c.appendChild(x);
+  var ul=el("ul"); var any=false;
+  S.cities.forEach(function(ct){
+    var arr=D.byDay[selDay][ct.id]||[]; if(!arr.length) return;
+    any=true;
+    var li=el("li");
+    var cl=el("span","cl");
+    var sw=el("span","sw"); sw.style.background=cvar(ct.slot); cl.appendChild(sw);
+    cl.appendChild(el("span",null,ct.name));
+    li.appendChild(cl);
+    li.appendChild(el("span",null,nameList(arr)+" ("+arr.length+")"));
+    ul.appendChild(li);
+  });
+  if(!any) ul.appendChild(el("li",null,"Nadie cargado ese día."));
+  c.appendChild(ul);
+  return c;
+}
+
+function tableCard(){
+  var card=el("div","card");
+  card.appendChild(el("h2",null,"Todos los tramos"));
+  var t=el("table");
+  var th=el("tr");
+  ["Quién","Ciudad","Desde","Hasta","Días"].forEach(function(h,k){ var e=el("th",k===4?"n":null,h); th.appendChild(e); });
+  var hd=el("thead"); hd.appendChild(th); t.appendChild(hd);
+  var tb=el("tbody");
+  var rows=[];
+  S.people.forEach(function(p){
+    (p.stays||[]).forEach(function(s){
+      var a=ix(s.from),b=ix(s.to); if(b<a){var z=a;a=b;b=z;}
+      rows.push({p:p.name,c:s.city,a:a,b:b});
+    });
+  });
+  rows.sort(function(x,y){ return x.a-y.a || x.p.localeCompare(y.p,"es"); });
+
+  /* on a phone a 5-column table is unreadable — stack each tramo into one line */
+  if(window.innerWidth<620){
+    if(!rows.length) card.appendChild(el("div","empty","Sin tramos cargados."));
+    rows.forEach(function(r){
+      var ct=cityById(r.c);
+      var a=Math.max(0,r.a), b=Math.min(NDAYS-1,r.b);
+      var d=el("div","drow");
+      var sw=el("span","sw"); sw.style.background=ct?cvar(ct.slot):"var(--muted)"; d.appendChild(sw);
+      d.appendChild(el("span","dp",r.p));
+      d.appendChild(el("span","dd",(ct?ct.name:"?")+" · "+fmt(a)+" – "+fmt(b)));
+      d.appendChild(el("span","dq",(b-a+1)+" d"));
+      card.appendChild(d);
+    });
+    return card;
+  }
+
+  rows.forEach(function(r){
+    var ct=cityById(r.c);
+    var tr=el("tr");
+    tr.appendChild(el("td",null,r.p));
+    var td=el("td");
+    var sw=el("span","sw"); sw.style.background=ct?cvar(ct.slot):"var(--muted)"; sw.style.marginRight="6px";
+    td.appendChild(sw); td.appendChild(el("span",null,ct?ct.name:"?"));
+    tr.appendChild(td);
+    tr.appendChild(el("td",null,fmt(Math.max(0,r.a))));
+    tr.appendChild(el("td",null,fmt(Math.min(NDAYS-1,r.b))));
+    tr.appendChild(el("td","n",String(Math.min(NDAYS-1,r.b)-Math.max(0,r.a)+1)));
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb); card.appendChild(t);
+  if(!rows.length) card.appendChild(el("div","empty","Sin tramos cargados."));
+  return card;
+}
+
+/* ---------- editor ---------- */
+function personById(id){for(var i=0;i<S.people.length;i++) if(S.people[i].id===id) return S.people[i]; return null;}
+function citySelect(val){
+  var sel=el("select");
+  S.cities.forEach(function(ct){ var o=el("option",null,ct.name); o.value=ct.id; sel.appendChild(o); });
+  if(val) sel.value=val;
+  return sel;
+}
+function dateInput(v){
+  var d=el("input"); d.type="date"; d.min="2026-11-01"; d.max="2027-02-28";
+  d.value=v||"2026-12-01"; return d;
+}
+function lastEnd(p){
+  var mx=null;
+  (p.stays||[]).forEach(function(s){ if(mx===null||ix(s.to)>ix(mx)) mx=s.to; });
+  if(mx===null) return "2026-12-01";
+  var n=ix(mx)+1; if(n>NDAYS-1) n=NDAYS-1; if(n<0) n=0;
+  return iso(at(n));
+}
+function stayRow(p,s){
+  var r=el("div","stay");
+  var ct=cityById(s.city);
+  var sw=el("span","sw"); sw.style.background=ct?cvar(ct.slot):"var(--muted)"; r.appendChild(sw);
+  var g=el("div","g"); g.style.display="flex"; g.style.flexWrap="wrap"; g.style.gap="5px"; g.style.alignItems="center";
+  var cs=citySelect(s.city);
+  cs.onchange=function(){ s.city=cs.value; save(); render(); };
+  var d1=dateInput(s.from);
+  d1.onchange=function(){ if(d1.value){ s.from=d1.value; save(); render(); } };
+  var d2=dateInput(s.to);
+  d2.onchange=function(){ if(d2.value){ s.to=d2.value; save(); render(); } };
+  g.appendChild(cs); g.appendChild(d1); g.appendChild(el("span","tiny","→")); g.appendChild(d2);
+  var a=Math.max(0,ix(s.from)), b=Math.min(NDAYS-1,ix(s.to));
+  if(!isNaN(a)&&!isNaN(b)&&b>=a) g.appendChild(el("span","tiny",(b-a+1)+" d"));
+  r.appendChild(g);
+  var x=el("button","del","×"); x.title="Borrar tramo";
+  x.onclick=function(){ p.stays=p.stays.filter(function(z){return z!==s;}); save(); render(); };
+  r.appendChild(x);
+  return r;
+}
+function fillGaps(p){
+  var base=S.base||(S.cities[0]&&S.cities[0].id); if(!base) return;
+  var covered=new Array(NDAYS), i;
+  (p.stays||[]).forEach(function(s){
+    var a=ix(s.from), b=ix(s.to);
+    if(isNaN(a)||isNaN(b)) return;
+    if(b<a){var t=a;a=b;b=t;}
+    a=Math.max(0,a); b=Math.min(NDAYS-1,b);
+    for(i=a;i<=b;i++) covered[i]=1;
+  });
+  p.stays=p.stays||[];
+  var s0=-1;
+  for(i=0;i<=NDAYS;i++){
+    var on = i<NDAYS && !covered[i];
+    if(on && s0<0) s0=i;
+    if(!on && s0>=0){ p.stays.push({city:base,from:iso(at(s0)),to:iso(at(i-1))}); s0=-1; }
+  }
+}
+
+function editorCard(){
+  var card=el("div","card");
+  card.appendChild(el("h2",null,"Editar el calendario"));
+
+  /* --- 1. who --- */
+  if(selPerson && !personById(selPerson)) selPerson=null;
+  card.appendChild(el("div","step","1 · ¿A quién editás?"));
+  var people=S.people.slice().sort(function(a,b){return a.name.localeCompare(b.name,"es");});
+  var pick=el("div","picker");
+  people.forEach(function(p){
+    var b=el("button","chipb"+(selPerson===p.id?" on":""),p.name);
+    b.onclick=function(){ selPerson=(selPerson===p.id?null:p.id); render(); };
+    pick.appendChild(b);
+  });
+  if(!people.length) pick.appendChild(el("span","tiny","Todavía no hay nadie."));
+  card.appendChild(pick);
+  var ap=el("div","row"); ap.style.marginTop="8px";
+  var pin=el("input"); pin.placeholder="Agregar a alguien"; pin.style.flex="1"; pin.style.minWidth="140px";
+  var pb=el("button","b ghost","+ Persona");
+  function addP(){
+    var v=pin.value.trim(); if(!v) return;
+    var np={id:uid("p"),name:v,stays:[]};
+    S.people.push(np); selPerson=np.id; pin.value=""; save(); render();
+  }
+  pb.onclick=addP; pin.onkeydown=function(e){ if(e.key==="Enter"){e.preventDefault();addP();} };
+  ap.appendChild(pin); ap.appendChild(pb);
+  card.appendChild(ap);
+
+  /* --- 2. her stays --- */
+  if(selPerson){
+    var p=personById(selPerson);
+    card.appendChild(el("div","step","2 · Tramos de "+p.name));
+
+    var nr=el("div","row");
+    var nmi=el("input"); nmi.value=p.name; nmi.style.flex="1"; nmi.style.minWidth="150px"; nmi.style.fontWeight="650";
+    nmi.onchange=function(){ var v=nmi.value.trim(); if(v&&v!==p.name){ p.name=v; save(); render(); } };
+    var nl=el("label","f"); nl.style.flex="1"; nl.appendChild(el("span",null,"Nombre")); nl.appendChild(nmi);
+    nr.appendChild(nl);
+    var dl=el("button","b ghost","Borrar a "+p.name);
+    dl.style.color="var(--c8)"; dl.style.alignSelf="flex-end";
+    dl.onclick=function(){
+      if(dl.getAttribute("data-c")==="1"){
+        S.people=S.people.filter(function(z){return z.id!==p.id;});
+        selPerson=null; save(); render();
+      } else { dl.setAttribute("data-c","1"); dl.textContent="¿Seguro? Tocá otra vez"; }
+    };
+    nr.appendChild(dl);
+    card.appendChild(nr);
+
+    var box=el("div","stays"); box.style.marginTop="9px";
+    var sorted=(p.stays||[]).slice().sort(function(a,b){return ix(a.from)-ix(b.from);});
+    if(!sorted.length) box.appendChild(el("div","tiny","Sin tramos todavía. Agregá uno abajo."));
+    sorted.forEach(function(s){ box.appendChild(stayRow(p,s)); });
+    card.appendChild(box);
+
+    var f=el("div","row"); f.style.marginTop="9px";
+    var sel=citySelect(S.base||(S.cities[0]&&S.cities[0].id));
+    var l1=el("label","f"); l1.appendChild(el("span",null,"Ciudad")); l1.appendChild(sel);
+    var d1=dateInput(lastEnd(p));
+    var l2=el("label","f"); l2.appendChild(el("span",null,"Desde")); l2.appendChild(d1);
+    var d2=dateInput(lastEnd(p));
+    var l3=el("label","f"); l3.appendChild(el("span",null,"Hasta")); l3.appendChild(d2);
+    var b=el("button","b","+ Tramo"); b.style.alignSelf="flex-end";
+    b.onclick=function(){
+      if(!sel.value||!d1.value||!d2.value) return;
+      p.stays=p.stays||[];
+      p.stays.push({city:sel.value,from:d1.value,to:d2.value});
+      save(); render();
+    };
+    f.appendChild(l1); f.appendChild(l2); f.appendChild(l3); f.appendChild(b);
+    card.appendChild(f);
+
+    var base=cityById(S.base||"");
+    if(base){
+      var gaps=el("button","b ghost","Completar huecos con "+base.name);
+      gaps.style.marginTop="9px";
+      gaps.onclick=function(){ fillGaps(p); save(); render(); };
+      card.appendChild(gaps);
+    }
+  } else if(people.length){
+    card.appendChild(el("p","tiny","Tocá un nombre para ver y cambiar sus tramos."));
+  }
+
+  /* --- 3. cities --- */
+  card.appendChild(el("div","step","3 · Ciudades"));
+  var cl=el("div","picker");
+  S.cities.forEach(function(ct){
+    var tag=el("span","ctag");
+    var sw=el("span","sw"); sw.style.background=cvar(ct.slot); tag.appendChild(sw);
+    tag.appendChild(el("span",null,ct.name));
+    if((S.base||"")===ct.id) tag.appendChild(el("span","basetag","base"));
+    var inUse=S.people.some(function(q){return (q.stays||[]).some(function(s){return s.city===ct.id;});});
+    if(!inUse){
+      var x=el("button","del","×"); x.title="Quitar ciudad";
+      x.onclick=function(){
+        S.cities=S.cities.filter(function(z){return z.id!==ct.id;});
+        if(S.base===ct.id) S.base=S.cities[0]?S.cities[0].id:null;
+        save(); render();
+      };
+      tag.appendChild(x);
+    }
+    cl.appendChild(tag);
+  });
+  card.appendChild(cl);
+  var cr=el("div","row"); cr.style.marginTop="8px";
+  var cin=el("input"); cin.placeholder="Agregar ciudad"; cin.style.flex="1"; cin.style.minWidth="130px";
+  var cbt=el("button","b ghost","+ Ciudad");
+  function addC(){ var v=cin.value.trim(); if(!v) return; addCity(v); cin.value=""; save(); render(); }
+  cbt.onclick=addC; cin.onkeydown=function(e){ if(e.key==="Enter"){e.preventDefault();addC();} };
+  cr.appendChild(cin); cr.appendChild(cbt);
+  if(S.cities.length>1){
+    var bl=el("label","f");
+    bl.appendChild(el("span",null,"Ciudad base"));
+    var bs=citySelect(S.base);
+    bs.onchange=function(){ S.base=bs.value; save(); render(); };
+    bl.appendChild(bs); cr.appendChild(bl);
+  }
+  card.appendChild(cr);
+
+  /* --- bulk --- */
+  var imp=el("details","imp"); imp.style.marginTop="14px";
+  imp.appendChild(el("summary",null,"Pegar varios tramos de golpe"));
+  var ta=el("textarea");
+  ta.placeholder="Flor | Buenos Aires | 20/12 - 8/1\nFlor | Madrid | 9/1 - 28/2\nLu | Córdoba | 24/12 - 2/1";
+  var ib=el("button","b","Agregar estas líneas");
+  var ierr=el("div","err");
+  ib.onclick=function(){
+    var res=parseBulk(ta.value);
+    ierr.textContent = res.errors.length ? ("No entendí: "+res.errors.join(" · ")) : "";
+    if(res.added){ ta.value=""; save(); render(); }
+  };
+  imp.appendChild(ta);
+  imp.appendChild(el("p","tiny","Nombre | Ciudad | desde - hasta. Fechas 20/12 o 20/12/2026 (nov y dic = 2026; ene y feb = 2027). Si el nombre ya existe, le suma el tramo."));
+  imp.appendChild(ib); imp.appendChild(ierr);
+  card.appendChild(imp);
+
+  card.appendChild(el("div","step","4 · Compartir"));
+  card.appendChild(el("p","tiny","Cualquiera con este link entra y edita, sin cuenta ni contraseña. Si se lo reenvían a alguien más, esa persona también puede editar."));
+  var sr=el("div","row");
+  var sb=el("button","b ghost","Copiar link del calendario");
+  sb.onclick=function(){
+    var t=shareLink();
+    try{ navigator.clipboard.writeText(t).then(function(){
+      sb.textContent="Link copiado ✓"; setTimeout(function(){sb.textContent="Copiar link del calendario";},1800);
+    }).catch(function(){ sb.textContent=t; }); }
+    catch(e){ sb.textContent=t; }
+  };
+  sr.appendChild(sb);
+  card.appendChild(sr);
+
+  var st=el("div","status"); st.id="status"; card.appendChild(st);
+  return card;
+}
+function addCity(name){
+  var found=null;
+  S.cities.forEach(function(c){ if(c.name.toLowerCase()===name.toLowerCase()) found=c; });
+  if(found) return found;
+  var c={id:uid("c"),name:name,code:slugCode(name),slot:nextSlot()};
+  S.cities.push(c);
+  return c;
+}
+function parseDate(tok){
+  var m=String(tok).trim().match(/^(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?$/);
+  if(!m) return null;
+  var d=+m[1], mo=+m[2], y=m[3]?+m[3]:null;
+  if(mo<1||mo>12||d<1||d>31) return null;
+  if(y===null) y = (mo>=11)?2026:2027;
+  else if(y<100) y=2000+y;
+  var s=y+"-"+String(mo).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+  var i=ix(s);
+  if(isNaN(i)) return null;
+  return s;
+}
+function parseBulk(text){
+  var lines=String(text).split(/\r?\n/), errors=[], added=0;
+  lines.forEach(function(line,n){
+    if(!line.trim()) return;
+    var parts = line.indexOf("|")>=0 ? line.split("|") : (line.indexOf("\t")>=0 ? line.split("\t") : line.split(";"));
+    if(parts.length<3){ errors.push("línea "+(n+1)); return; }
+    var who=parts[0].trim(), city=parts[1].trim(), range=parts.slice(2).join(" ").trim();
+    var rm=range.split(/\s*(?:-|–|a|al|hasta)\s*/i).filter(Boolean);
+    if(rm.length<2){ errors.push("línea "+(n+1)); return; }
+    var a=parseDate(rm[0]), b=parseDate(rm[rm.length-1]);
+    if(!who||!city||!a||!b){ errors.push("línea "+(n+1)); return; }
+    var ct=addCity(city);
+    var p=null;
+    S.people.forEach(function(z){ if(z.name.toLowerCase()===who.toLowerCase()) p=z; });
+    if(!p){ p={id:uid("p"),name:who,stays:[]}; S.people.push(p); }
+    p.stays=p.stays||[];
+    p.stays.push({city:ct.id,from:a,to:b});
+    added++;
+  });
+  return {errors:errors,added:added};
+}
+
+/* ---------- go ---------- */
+var rt=null;
+window.addEventListener("resize",function(){ if(rt)clearTimeout(rt); rt=setTimeout(function(){ if(LOADED) render(); },180); });
+boot();
+})();
+</script>
+</body>
+</html>
