@@ -72,6 +72,11 @@
   .bar{height:19px;margin:2px 1px;border-radius:4px;display:flex;align-items:center;justify-content:center;
     font-size:9.5px;font-weight:700;letter-spacing:0.03em;overflow:hidden;white-space:nowrap}
   .bar.unk{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.26) 0 3px,transparent 3px 7px)}
+  /* 15 ciudades no entran en 15 tonos distinguibles: son 8 tonos validados,
+     lisos y rayados. La trama distingue; el código de 3 letras identifica. */
+  .stripe{background-image:repeating-linear-gradient(135deg,
+    rgba(255,255,255,.62) 0 2px, rgba(255,255,255,0) 2px 6px)}
+  .sw.stripe{background-size:auto}
   .heat{position:relative;height:20px;border-top:1px solid var(--grid)}
   .hf{position:absolute;inset:1px 1px;border-radius:3px}
   .hn{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;height:100%;
@@ -217,13 +222,22 @@ var S = {cities:[],people:[],base:null,v:1};
 var LOADED=false, DOCVER=0;
 
 var TEXT_ON = {0:"#fff",1:"#fff",2:"#fff",3:"#fff",4:"#0b0b0b",5:"#fff",6:"#fff",7:"#fff",8:"#fff"};
-function cvar(slot){return "var(--c"+slot+")";}
+var MAXSLOT = 15;
+/* slots 1-8: tono liso. slots 9-15: el mismo tono, rayado. */
+function hueOf(slot){var n=Number(slot)||0; if(n<=0) return 0; return ((n-1)%8)+1;}
+function striped(slot){return Number(slot)>8;}
+function cvar(slot){return "var(--c"+hueOf(slot)+")";}
+function inkOn(slot){return TEXT_ON[hueOf(slot)];}
+function paint(node,slot){
+  node.style.background=cvar(slot);
+  if(striped(slot)) node.className+=" stripe";
+}
 function cityById(id){for(var i=0;i<S.cities.length;i++) if(S.cities[i].id===id) return S.cities[i]; return null;}
 function nextSlot(){
   var used={},i;
   for(i=0;i<S.cities.length;i++) used[S.cities[i].slot]=1;
-  for(i=1;i<=8;i++) if(!used[i]) return i;
-  return ((S.cities.length)%8)+1;
+  for(i=1;i<=MAXSLOT;i++) if(!used[i]) return i;
+  return ((S.cities.length)%MAXSLOT)+1;
 }
 function uid(p){return p+Math.random().toString(36).slice(2,8);}
 function slugCode(name){
@@ -511,7 +525,7 @@ function legendCard(){
   var lg=el("div","legend");
   S.cities.forEach(function(ct){
     var s=el("span","lg");
-    var sw=el("span","sw"); sw.style.background=cvar(ct.slot); s.appendChild(sw);
+    var sw=el("span","sw"); paint(sw,ct.slot); s.appendChild(sw);
     s.appendChild(el("span",null,ct.name+" ("+ct.code+")"));
     lg.appendChild(s);
   });
@@ -594,11 +608,12 @@ function timelineCard(){
         var b=el("div","bar");
         var span=it.b-it.a+1;
         b.style.gridRow="1"; b.style.gridColumn=(it.a+1)+" / span "+span;
-        b.style.background=cvar(ct.slot); b.style.color=TEXT_ON[ct.slot];
+        b.style.color=inkOn(ct.slot);
         if(ct.slot===0) b.className="bar unk";
+        paint(b,ct.slot);
         b.style.alignSelf="start"; b.style.marginTop=(li*23+2)+"px";
         b.title=p.name+" · "+ct.name+" · "+fmt(it.a)+" – "+fmt(it.b)+" ("+span+" días)";
-        if(span*W>=38) b.textContent = span*W>=80 ? ct.name.toUpperCase() : ct.code;
+        if(span*W>=30) b.textContent = span*W>=80 ? ct.name.toUpperCase() : ct.code;
         g.appendChild(b);
       });
     });
@@ -618,10 +633,10 @@ function timelineCard(){
       var cell=el("div","heat"+(isWe(i)?" we":""));
       cell.style.gridColumn=(i+1);
       if(n>0){
-        var f=el("div","hf"); f.style.background=cvar(ct.slot);
+        var f=el("div","hf"); paint(f,ct.slot);
         f.style.opacity=String(0.22+0.78*(D.max?n/D.max:1));
         cell.appendChild(f);
-        var s=el("div","hn",String(n)); s.style.color = n/ (D.max||1) > 0.55 ? TEXT_ON[ct.slot] : "var(--ink)";
+        var s=el("div","hn",String(n)); s.style.color = n/ (D.max||1) > 0.55 ? inkOn(ct.slot) : "var(--ink)";
         if(W>=22) cell.appendChild(s);
         cell.title=ct.name+" · "+fmt(i)+" · "+n+(n===1?" persona":" personas");
       }
@@ -657,7 +672,7 @@ function windowsCard(){
     var ct=g.city;
     var cb=el("div","cb");
     var hd=el("div","cbh");
-    var pl=el("span","pill",ct.name); pl.style.background=cvar(ct.slot); pl.style.color=TEXT_ON[ct.slot];
+    var pl=el("span","pill",ct.name); paint(pl,ct.slot); pl.style.color=inkOn(ct.slot);
     hd.appendChild(pl);
     hd.appendChild(el("span","mx","hasta "+g.maxK+" juntas"));
     cb.appendChild(hd);
@@ -739,7 +754,7 @@ function dayCell(i){
   list.sort(function(x,y){return y.n-x.n;});
   list.slice(0,3).forEach(function(o){
     var ch=el("div","chip",o.ct.code+" "+o.n);
-    ch.style.background=cvar(o.ct.slot); ch.style.color=TEXT_ON[o.ct.slot];
+    paint(ch,o.ct.slot); ch.style.color=inkOn(o.ct.slot);
     b.appendChild(ch);
   });
   if(list.length>3) b.appendChild(el("div","dn","+"+(list.length-3)));
@@ -762,7 +777,7 @@ function detailCard(){
     any=true;
     var li=el("li");
     var cl=el("span","cl");
-    var sw=el("span","sw"); sw.style.background=cvar(ct.slot); cl.appendChild(sw);
+    var sw=el("span","sw"); paint(sw,ct.slot); cl.appendChild(sw);
     cl.appendChild(el("span",null,ct.name));
     li.appendChild(cl);
     li.appendChild(el("span",null,nameList(arr)+" ("+arr.length+")"));
@@ -797,7 +812,7 @@ function tableCard(){
       var ct=cityById(r.c);
       var a=Math.max(0,r.a), b=Math.min(NDAYS-1,r.b);
       var d=el("div","drow");
-      var sw=el("span","sw"); sw.style.background=ct?cvar(ct.slot):"var(--muted)"; d.appendChild(sw);
+      var sw=el("span","sw"); if(ct) paint(sw,ct.slot); else sw.style.background="var(--muted)"; d.appendChild(sw);
       d.appendChild(el("span","dp",r.p));
       d.appendChild(el("span","dd",(ct?ct.name:"?")+" · "+fmt(a)+" – "+fmt(b)));
       d.appendChild(el("span","dq",(b-a+1)+" d"));
@@ -811,7 +826,7 @@ function tableCard(){
     var tr=el("tr");
     tr.appendChild(el("td",null,r.p));
     var td=el("td");
-    var sw=el("span","sw"); sw.style.background=ct?cvar(ct.slot):"var(--muted)"; sw.style.marginRight="6px";
+    var sw=el("span","sw"); if(ct) paint(sw,ct.slot); else sw.style.background="var(--muted)"; sw.style.marginRight="6px";
     td.appendChild(sw); td.appendChild(el("span",null,ct?ct.name:"?"));
     tr.appendChild(td);
     tr.appendChild(el("td",null,fmt(Math.max(0,r.a))));
@@ -846,7 +861,7 @@ function lastEnd(p){
 function stayRow(p,s){
   var r=el("div","stay");
   var ct=cityById(s.city);
-  var sw=el("span","sw"); sw.style.background=ct?cvar(ct.slot):"var(--muted)"; r.appendChild(sw);
+  var sw=el("span","sw"); if(ct) paint(sw,ct.slot); else sw.style.background="var(--muted)"; r.appendChild(sw);
   var g=el("div","g"); g.style.display="flex"; g.style.flexWrap="wrap"; g.style.gap="5px"; g.style.alignItems="center";
   var cs=citySelect(s.city);
   cs.onchange=function(){ s.city=cs.value; save(); render(); };
@@ -970,7 +985,7 @@ function editorCard(){
   var cl=el("div","picker");
   S.cities.forEach(function(ct){
     var tag=el("span","ctag");
-    var sw=el("span","sw"); sw.style.background=cvar(ct.slot); tag.appendChild(sw);
+    var sw=el("span","sw"); paint(sw,ct.slot); tag.appendChild(sw);
     tag.appendChild(el("span",null,ct.name));
     if((S.base||"")===ct.id) tag.appendChild(el("span","basetag","base"));
     var inUse=S.people.some(function(q){return (q.stays||[]).some(function(s){return s.city===ct.id;});});
