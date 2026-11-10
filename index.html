@@ -111,11 +111,13 @@
   .chip{display:flex;align-items:center;gap:3px;font-size:9.5px;font-weight:700;border-radius:4px;padding:2px 3px;color:#fff;
     white-space:nowrap;overflow:hidden}
 
-  /* day detail */
-  .det{position:sticky;bottom:calc(8px + env(safe-area-inset-bottom));z-index:20;background:#fff;
-    border:1px solid var(--ring);border-radius:14px;padding:12px 14px;
-    box-shadow:0 -6px 24px rgba(0,0,0,.13);margin-top:12px}
-  .det h3{margin:0 0 8px;font-size:15px;padding-right:28px}
+  /* day detail — centrado sobre la pantalla */
+  .detwrap{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
+    padding:18px;background:rgba(11,11,11,.38);-webkit-tap-highlight-color:transparent}
+  .det{position:relative;width:100%;max-width:420px;max-height:78vh;overflow-y:auto;background:#fff;
+    border:1px solid var(--ring);border-radius:16px;padding:15px 16px;
+    box-shadow:0 14px 44px rgba(0,0,0,.24)}
+  .det h3{margin:0 0 10px;font-size:16px;padding-right:30px}
   .det ul{margin:0;padding:0;list-style:none}
   .det li{display:flex;gap:8px;padding:4px 0;font-size:13.5px;align-items:baseline;flex-wrap:wrap}
   .det .cl{font-weight:650;min-width:92px;display:inline-flex;align-items:center;gap:6px}
@@ -746,7 +748,10 @@ function dayCell(i){
 }
 
 function detailCard(){
-  var c=el("div","det"); c.style.position="relative";
+  var wrap=el("div","detwrap");
+  wrap.onclick=function(e){ if(e.target===wrap){ selDay=null; render(); } };
+  var c=el("div","det");
+  wrap.appendChild(c);
   var d=at(selDay);
   c.appendChild(el("h3",null, d.getUTCDate()+" de "+MN[d.getUTCMonth()]+" "+d.getUTCFullYear()));
   var x=el("button","x","×"); x.setAttribute("aria-label","Cerrar");
@@ -765,7 +770,7 @@ function detailCard(){
   });
   if(!any) ul.appendChild(el("li",null,"Nadie cargado ese día."));
   c.appendChild(ul);
-  return c;
+  return wrap;
 }
 
 function tableCard(){
@@ -1073,6 +1078,9 @@ function parseBulk(text){
 }
 
 /* ---------- go ---------- */
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape" && selDay!==null){ selDay=null; render(); }
+});
 var rt=null;
 window.addEventListener("resize",function(){ if(rt)clearTimeout(rt); rt=setTimeout(function(){ if(LOADED) render(); },180); });
 boot();
